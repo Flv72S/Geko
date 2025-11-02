@@ -1,8 +1,10 @@
 """
 Geko Backend - FastAPI Application
 """
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from app.db.session import get_db
 
 app = FastAPI(
     title="Geko API",
@@ -13,7 +15,7 @@ app = FastAPI(
 # Configurazione CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,5 +33,10 @@ async def root():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+@app.get("/test-db")
+def test_db(db: Session = Depends(get_db)):
+    """Endpoint di test connessione database"""
+    return {"status": "ok", "message": "Connessione database riuscita"}
 
 
