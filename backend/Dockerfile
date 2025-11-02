@@ -7,6 +7,7 @@ COPY ./app /app/app
 COPY ./requirements.txt /app
 COPY ./alembic.ini /app/
 COPY ./alembic /app/alembic
+COPY ./init.sql /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
