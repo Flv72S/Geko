@@ -1,32 +1,19 @@
-# FastAPI e server
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-
-# Database
-sqlalchemy==2.0.23
-pydantic[dotenv]==2.5.0
-
-# HTTP Clients
-aiohttp==3.9.1
-httpx==0.25.2
-requests==2.31.0
-
-# NLP e Processing
-spacy==3.7.2
-langdetect==1.0.9
-
-# Data Science
-pandas==2.1.3
-numpy==1.26.2
-scikit-learn==1.3.2
-
-# Environment
-python-dotenv==1.0.0
-
-# Testing e Sviluppo
-pytest==7.4.3
-black==23.11.0
-flake8==6.1.0
-isort==5.12.0
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic[dotenv]
+requests
+aiohttp
+httpx
+pandas
+numpy
+scikit-learn
+langdetect
+python-dotenv
+pytest
+black
+flake8
+isort
 
 

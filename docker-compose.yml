@@ -1,26 +1,40 @@
-version: '3.8'
+version: "3.9"
 
 services:
   backend:
     build: ./backend
+    container_name: geko_backend
     ports:
       - "8000:8000"
-    environment:
-      - GEKO_ENV=${GEKO_ENV:-development}
-      - GEKO_DB_URL=${GEKO_DB_URL:-sqlite:///./data/geko.db}
     volumes:
       - ./backend:/app
-      - ./data:/data
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - ./data:/app/data
+    env_file:
+      - .env
+    depends_on:
+      - db
 
   frontend:
     build: ./frontend
+    container_name: geko_frontend
     ports:
-      - "3000:3000"
+      - "5173:5173"
     volumes:
       - ./frontend:/app
-      - /app/node_modules
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15
+    container_name: geko_db
     environment:
-      - VITE_API_URL=http://localhost:8000
+      POSTGRES_USER: geko_user
+      POSTGRES_PASSWORD: geko_pass
+      POSTGRES_DB: geko_db
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
-
+volumes:
+  db_data:

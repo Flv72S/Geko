@@ -1,58 +1,29 @@
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.venv_geko/
-venv/
-env/
-ENV/
-*.egg-info/
-dist/
-build/
-
-# Environment
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
 .env
-.env.local
+.venv_geko/
+data/
+instance/
 
-# IDE
+# Node / React
+node_modules/
+build/
+dist/
+.env.local
+npm-debug.log*
+
+# Docker
+docker-compose.override.yml
+*.log
+
+# IDE / Cursor
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Frontend build
-frontend/dist/
-frontend/.vite/
-
-# OS
 .DS_Store
-Thumbs.db
-
-# Logs
-*.log
-logs/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# spaCy models (potrebbero essere molto grandi)
-*.whl
-models/
+cursor/
 
