@@ -14,8 +14,8 @@ except ImportError:
     sys.exit(1)
 
 # Credenziali PostgreSQL
-POSTGRES_USER = "postgres"
-POSTGRES_PASSWORD = "N0nn0c4rl0!!"
+POSTGRES_USER = "flavio"
+POSTGRES_PASSWORD = "flavio"
 POSTGRES_HOST = "127.0.0.1"  # Usa IPv4 invece di localhost
 POSTGRES_PORT = 5432
 DB_NAME = "geko_db"

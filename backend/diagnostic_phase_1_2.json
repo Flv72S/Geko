@@ -1,6 +1,6 @@
 {
   "backend_diagnostics_phase_1_2": {
-    "timestamp": "2025-11-03T16:19:47.960231",
+    "timestamp": "2025-11-03T16:38:16.805914",
     "environment": {
       "python_version": "3.13.3",
       "pip_version": "pip 22.3 from C:\\Users\\flavi\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\pip (python 3.11)",
@@ -33,6 +33,7 @@
         "GEKO_DB_URL",
         "GEKO_API_KEY",
         "GEKO_PORT",
+        "DATABASE_URL",
         "DATABASE_URL"
       ],
       "structure_existing_dirs": [
@@ -53,7 +54,24 @@
       "middleware_configured": true,
       "syntax_check": "OK"
     },
-    "database": {},
+    "database": {
+      "database_url_configured": true,
+      "connection_status": "successo",
+      "tables_found": [
+        "users",
+        "logs",
+        "aziende",
+        "leads"
+      ],
+      "tables_count": 4,
+      "expected_tables_found": [
+        "users",
+        "aziende",
+        "leads",
+        "logs"
+      ],
+      "expected_tables_missing": []
+    },
     "api_routes": {
       "routes_registered": [
         {
@@ -129,7 +147,6 @@
     "summary": {
       "status": "ERROR",
       "recommendations": [
-        "DATABASE_URL usa 'db' come hostname (funziona solo in Docker). Per test locali, usare 'localhost'",
         "Installare dipendenze mancanti: pip install -r requirements.txt"
       ]
     }
