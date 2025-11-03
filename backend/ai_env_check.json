@@ -1,0 +1,43 @@
+{
+  "python_version": "3.13.3",
+  "python_meets_requirement": true,
+  "libraries": {
+    "torch": {
+      "installed": false,
+      "version": null
+    },
+    "transformers": {
+      "installed": false,
+      "version": null
+    },
+    "scikit-learn": {
+      "installed": false,
+      "version": null
+    },
+    "numpy": {
+      "installed": true,
+      "version": "2.2.4"
+    },
+    "pandas": {
+      "installed": true,
+      "version": "2.3.0"
+    },
+    "fastapi": {
+      "installed": true,
+      "version": "0.115.12"
+    },
+    "uvicorn": {
+      "installed": true,
+      "version": "0.15.0"
+    }
+  },
+  "missing_packages": [
+    "torch",
+    "transformers",
+    "scikit-learn"
+  ],
+  "cuda": {
+    "available": false,
+    "note": "PyTorch non installato"
+  }
+}

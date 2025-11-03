@@ -1,0 +1,95 @@
+{
+  "ai_core_diagnostics_phase_1_4": {
+    "timestamp": "2025-11-03T22:38:38.938277",
+    "environment": {
+      "python": {
+        "version": "3.13.3",
+        "major": 3,
+        "minor": 13,
+        "meets_requirement": true
+      },
+      "installed": [
+        "numpy",
+        "pandas",
+        "fastapi",
+        "uvicorn"
+      ],
+      "missing": [
+        "torch",
+        "transformers",
+        "scikit-learn"
+      ],
+      "versions": {
+        "numpy": "2.2.4",
+        "pandas": "2.3.0",
+        "fastapi": "0.115.12",
+        "uvicorn": "0.15.0"
+      },
+      "cuda": {
+        "available": false,
+        "note": "PyTorch non installato"
+      }
+    },
+    "file_structure": {
+      "ai_core_path": "C:\\Users\\flavi\\Geko\\backend\\app\\ai_core",
+      "exists": false,
+      "status": "NOT_FOUND",
+      "expected_files": [
+        "__init__.py",
+        "core_ai.py",
+        "model_loader.py",
+        "pipeline_manager.py",
+        "ai_routes.py"
+      ]
+    },
+    "model_loading": {
+      "models_directory": "C:\\Users\\flavi\\Geko\\backend\\models",
+      "models_directory_exists": false,
+      "models_found": [],
+      "status": "NO_MODELS_DIRECTORY",
+      "loading_test": "NOT_IMPLEMENTED",
+      "note": "Test caricamento richiede implementazione model_loader.py"
+    },
+    "api_inference": {
+      "status": "NOT_IMPLEMENTED",
+      "endpoints": [],
+      "note": "Endpoint API AI richiedono implementazione ai_routes.py"
+    },
+    "pipeline": {
+      "status": "NOT_IMPLEMENTED",
+      "modules": {
+        "preprocessing": "NOT_FOUND",
+        "inference": "NOT_FOUND",
+        "postprocessing": "NOT_FOUND"
+      },
+      "end_to_end_test": "NOT_IMPLEMENTED",
+      "note": "Test end-to-end richiede implementazione completa pipeline"
+    },
+    "performance": {
+      "system": {
+        "cpu_count": 4,
+        "memory_total_gb": 15.87,
+        "memory_available_gb": 3.8
+      },
+      "benchmark": {
+        "status": "NOT_IMPLEMENTED",
+        "note": "Benchmark richiede modelli e pipeline implementati"
+      },
+      "recommendations": [
+        "Eseguire benchmark dopo implementazione modelli",
+        "Monitorare utilizzo GPU se disponibile",
+        "Ottimizzare batch size per performance"
+      ]
+    },
+    "summary": {
+      "status": "NOT_READY",
+      "recommendations": [
+        "Installare dipendenze mancanti: pip install torch transformers scikit-learn",
+        "Creare struttura ai_core/ con i file necessari secondo l'architettura definita",
+        "Creare directory models/ per i modelli AI",
+        "Implementare ai_routes.py con endpoint /ai/predict, /ai/analyze, /ai/test",
+        "Implementare pipeline_manager.py con moduli pre-processing, inference, post-processing"
+      ]
+    }
+  }
+}
