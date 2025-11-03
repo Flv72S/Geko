@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = str(Path(__file__).parent.parent.parent.parent / ".env")
+        extra = "ignore"  # Ignora variabili extra nel .env
 
 
 settings = Settings()

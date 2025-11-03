@@ -1,0 +1,137 @@
+{
+  "backend_diagnostics_phase_1_2": {
+    "timestamp": "2025-11-03T16:06:53.565517",
+    "environment": {
+      "python_version": "3.13.3",
+      "pip_version": "pip 22.3 from C:\\Users\\flavi\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\pip (python 3.11)",
+      "requirements_file": "presente",
+      "dependencies_count": 19,
+      "main_dependencies": [
+        "fastapi",
+        "uvicorn[standard]",
+        "sqlalchemy",
+        "psycopg2-binary",
+        "alembic",
+        "pydantic[dotenv]",
+        "pydantic-settings",
+        "requests",
+        "aiohttp",
+        "httpx"
+      ],
+      "critical_deps_installed": [
+        "fastapi",
+        "uvicorn",
+        "sqlalchemy",
+        "pydantic"
+      ],
+      "critical_deps_missing": [
+        "psycopg2-binary"
+      ],
+      "env_file": "presente",
+      "env_variables_found": [
+        "ï»¿GEKO_ENV",
+        "GEKO_DB_URL",
+        "GEKO_API_KEY",
+        "GEKO_PORT",
+        "DATABASE_URL"
+      ],
+      "structure_existing_dirs": [
+        "app",
+        "app/core",
+        "app/db",
+        "app/db/models"
+      ],
+      "structure_missing_dirs": []
+    },
+    "server": {
+      "port": 8000,
+      "port_free": true,
+      "main_file": "presente",
+      "app_import": "successo",
+      "fastapi_title": "Geko API",
+      "fastapi_version": "1.0.0",
+      "middleware_configured": true,
+      "syntax_check": "OK"
+    },
+    "database": {},
+    "api_routes": {
+      "routes_registered": [
+        {
+          "path": "/openapi.json",
+          "methods": [
+            "GET",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "/docs",
+          "methods": [
+            "GET",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "/docs/oauth2-redirect",
+          "methods": [
+            "GET",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "/redoc",
+          "methods": [
+            "GET",
+            "HEAD"
+          ]
+        },
+        {
+          "path": "/",
+          "methods": [
+            "GET"
+          ]
+        },
+        {
+          "path": "/health",
+          "methods": [
+            "GET"
+          ]
+        },
+        {
+          "path": "/test-db",
+          "methods": [
+            "GET"
+          ]
+        }
+      ],
+      "routes_count": 7,
+      "expected_routes_found": [
+        "/",
+        "/health",
+        "/test-db"
+      ],
+      "expected_routes_missing": [],
+      "note": "Test effettivi delle route richiedono server in esecuzione"
+    },
+    "middlewares": {
+      "cors_configured": false,
+      "cors_in_code": true,
+      "logging_note": "Logging configurabile tramite uvicorn"
+    },
+    "performance": {
+      "note": "Test performance completi richiedono server in esecuzione",
+      "recommended_tests": [
+        "Test carico con 5 req/sec per 30 sec",
+        "Misura tempo medio risposta",
+        "Verifica percentile 95°"
+      ],
+      "async_support": true
+    },
+    "summary": {
+      "status": "ERROR",
+      "recommendations": [
+        "DATABASE_URL usa 'db' come hostname (funziona solo in Docker). Per test locali, usare 'localhost'",
+        "Installare dipendenze mancanti: pip install -r requirements.txt"
+      ]
+    }
+  }
+}
