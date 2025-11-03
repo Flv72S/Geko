@@ -5,7 +5,8 @@ Questa directory contiene la documentazione architetturale completa del progetto
 ## 📚 Indice Documenti
 
 ### Architettura Generale
-- **[Architettura Modulare Completa](geko-ai-core-architecture.md)** - Struttura generale dei 5 moduli principali
+- **[Architettura Modulare Completa](geko-ai-core-architecture.md)** - Struttura generale dei 5 moduli principali (Fase 1.4 Microstep 1)
+- **[Interfacce Dati e Flussi Interni](data-interfaces-and-flows.md)** - Specifiche tecniche dei flussi inter-modulari (Fase 1.4 Microstep 2)
 
 ### Moduli Principali
 1. **Perception Layer** - Raccolta e normalizzazione dati
