@@ -12,9 +12,11 @@ const apiClient = axios.create({
 // Request interceptor per aggiungere il token JWT
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('geko_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('geko_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -29,9 +31,11 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       // Token scaduto o non valido
-      localStorage.removeItem('geko_token');
-      localStorage.removeItem('geko_user');
-      window.location.href = '/login';
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('geko_token');
+        localStorage.removeItem('geko_user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
