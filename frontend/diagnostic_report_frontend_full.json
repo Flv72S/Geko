@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-11-03T19:46:21.854Z",
+  "node": "v20.12.2",
+  "npm": "10.5.0",
+  "vite": "5.4.21",
+  "deps": {
+    "status": "OK",
+    "message": "Dipendenze installate correttamente",
+    "count": 0
+  },
+  "build": {
+    "status": "OK",
+    "message": "Build completata con successo",
+    "details": "..\ndist/index.html                   0.49 kB │ gzip:   0.32 kB\ndist/assets/index-BxUlN3UI.css   12.45 kB │ gzip:   3.13 kB\ndist/assets/index-BSw0ETLz.js   325.45 kB │ gzip: 107.39 kB\n✓ built in 1m 25s",
+    "filesCount": 3
+  },
+  "port5173": {
+    "status": "occupied",
+    "details": "TCP    0.0.0.0:5173           0.0.0.0:0              LISTENING       17156\r\n  TCP    [::]:5173              [::]:0                 LISTENING       17156"
+  },
+  "backendCheck": {
+    "status": "OK",
+    "message": "Backend raggiungibile",
+    "statusCode": 200
+  },
+  "configFiles": {
+    "package.json": "presente",
+    "vite.config.js": "presente",
+    "tsconfig.json": "mancante",
+    ".env": "mancante",
+    ".env.local": "mancante"
+  },
+  "summary": {
+    "successes": [
+      "Node.js OK",
+      "npm OK",
+      "Vite installato",
+      "Dipendenze OK",
+      "Build OK",
+      "Backend OK"
+    ],
+    "warnings": [
+      "Porta 5173 occupata"
+    ],
+    "errors": []
+  },
+  "status": "WARNING",
+  "viteConfig": {
+    "status": "OK",
+    "port": 5173,
+    "message": "Porta 5173 configurata"
+  }
+}
