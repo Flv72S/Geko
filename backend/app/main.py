@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app.db.session import get_db
+from app.ai_core.ai_routes import router as ai_router
 
 app = FastAPI(
     title="Geko API",
@@ -38,5 +39,8 @@ async def health_check():
 def test_db(db: Session = Depends(get_db)):
     """Endpoint di test connessione database"""
     return {"status": "ok", "message": "Connessione database riuscita"}
+
+# Include AI Core routes
+app.include_router(ai_router)
 
 

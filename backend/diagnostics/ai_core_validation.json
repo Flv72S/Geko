@@ -1,0 +1,29 @@
+{
+    "phase": "AI Core post-install diagnostic",
+    "timestamp": "2025-11-04T01:59:05.685007",
+    "checks": [
+        {
+            "torch": "Missing"
+        },
+        {
+            "transformers": "Missing"
+        },
+        {
+            "sklearn": "OK"
+        },
+        {
+            "file_structure": "OK"
+        }
+    ],
+    "api_status": {
+        "status": "OK",
+        "response": {
+            "status": "AI Core connected",
+            "ai_core_status": {
+                "status": "initialized",
+                "model_loaded": false
+            }
+        },
+        "status_code": 200
+    }
+}
