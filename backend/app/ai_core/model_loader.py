@@ -14,6 +14,9 @@ from pathlib import Path
 from typing import Optional, Dict, Any, Union
 from datetime import datetime
 
+from .ai_metrics import AIMetrics
+from .ai_logger import ai_logger, log_ai_event
+
 try:
     from transformers import AutoModel, AutoTokenizer, AutoConfig
     from transformers.utils import TRANSFORMERS_CACHE
@@ -254,6 +257,16 @@ class ModelLoader:
             
             load_time = time.time() - start_time
             self.log_event("info", f"Modello caricato da Hugging Face Hub in {load_time:.2f}s")
+            
+            # Log metriche caricamento
+            load_time_ms = load_time * 1000
+            log_entry = AIMetrics.log_model_loading(
+                model_name=self.model_name,
+                load_time_ms=load_time_ms,
+                success=True,
+                source="huggingface_hub"
+            )
+            log_ai_event(ai_logger, "model_loading", log_entry, "info")
             
             return {
                 "model": model,

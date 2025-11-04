@@ -6,8 +6,19 @@ Endpoint FastAPI per l'AI Core
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+import psutil
+from datetime import datetime
+
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+    torch = None
+
 from .pipeline_manager import PipelineManager, run_pipeline
 from .core_ai import GekoAICore
+from .ai_metrics import AIMetrics
 
 router = APIRouter(prefix="/ai", tags=["AI Core"])
 
@@ -85,4 +96,51 @@ def get_ai_status():
         status["pipeline"] = _pipeline_manager.get_pipeline_info()
     
     return status
+
+
+@router.get("/metrics")
+async def get_ai_metrics():
+    """
+    Ritorna stato del sistema AI e metriche diagnostiche.
+    
+    Returns:
+        Dict con metriche sistema, CPU, RAM, GPU e stato AI Core
+    """
+    try:
+        # Raccogli metriche
+        metrics = AIMetrics.collect_metrics()
+        
+        # Health status
+        health = AIMetrics.get_system_health()
+        
+        # Determina stato modello
+        model_status = "active"
+        if not metrics.get("gpu_available"):
+            model_status = "cpu-mode"
+        
+        # Info pipeline se disponibile
+        pipeline_info = None
+        global _pipeline_manager
+        if _pipeline_manager:
+            pipeline_info = _pipeline_manager.get_pipeline_info()
+        
+        result = {
+            "status": "OK",
+            "health_status": health["status"],
+            "warnings": health["warnings"],
+            "metrics": {
+                **metrics,
+                "model": model_status,
+                "ai_core_status": "ready"
+            },
+            "pipeline": pipeline_info
+        }
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Errore raccolta metriche: {str(e)}"
+        )
 

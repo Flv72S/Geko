@@ -3,6 +3,9 @@ Geko AI Core - Modulo principale
 Gestisce la logica centrale dell'AI Core
 """
 
+from .ai_metrics import AIMetrics
+from .ai_logger import ai_logger, log_ai_event
+
 
 class GekoAICore:
     """Classe principale per Geko AI Core"""
@@ -10,6 +13,14 @@ class GekoAICore:
     def __init__(self):
         self.status = "initialized"
         self.model_loaded = False
+        
+        # Log inizializzazione
+        log_entry = AIMetrics.collect_metrics()
+        log_entry.update({
+            "event": "ai_core_initialized",
+            "status": self.status
+        })
+        log_ai_event(ai_logger, "initialization", log_entry, "info")
     
     def analyze(self, input_data: str):
         """

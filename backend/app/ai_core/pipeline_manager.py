@@ -21,7 +21,10 @@ except ImportError:
     TORCH_AVAILABLE = False
     print("[WARN] torch non installato. Installare con: pip install torch")
 
+import psutil
 from .model_loader import ModelLoader
+from .ai_metrics import AIMetrics
+from .ai_logger import ai_logger, log_ai_event
 
 # Configurazione logging
 log_dir = Path(__file__).parent.parent.parent / "logs"
@@ -187,6 +190,7 @@ class PipelineManager:
                 inputs = None
         
         processing_time = time.time() - start_time
+        processing_time_ms = processing_time * 1000
         
         result = {
             "original_text": original_text,
@@ -198,6 +202,15 @@ class PipelineManager:
         }
         
         logger.debug(f"Pre-processing completato in {processing_time:.4f}s - {len(tokens)} tokens")
+        
+        # Log pre-processing
+        log_entry = AIMetrics.log_preprocessing(
+            text_length=len(original_text),
+            token_count=len(tokens),
+            processing_time_ms=processing_time_ms,
+            model_name=self.model_name
+        )
+        log_ai_event(ai_logger, "preprocessing", log_entry, "debug")
         
         return result
     
@@ -213,6 +226,10 @@ class PipelineManager:
         """
         logger.info(f"Starting inference for input: {text[:50]}...")
         start_time = time.time()
+        
+        # Metriche iniziali
+        cpu_start = psutil.cpu_percent(interval=None)
+        memory_start = psutil.virtual_memory()
         
         try:
             # Pre-processing
@@ -286,6 +303,29 @@ class PipelineManager:
             relevance_score = float(max(probs_list)) if probs_list else 0.0
             
             inference_time = time.time() - start_time
+            inference_time_ms = inference_time * 1000
+            
+            # Metriche finali
+            cpu_end = psutil.cpu_percent(interval=None)
+            memory_end = psutil.virtual_memory()
+            
+            # Log evento inferenza
+            log_entry = AIMetrics.log_inference(
+                model_name=self.model_name,
+                elapsed_ms=inference_time_ms,
+                success=True,
+                additional_data={
+                    "preprocessing_time_ms": preprocessed["processing_time"] * 1000,
+                    "cpu_percent_start": cpu_start,
+                    "cpu_percent_end": cpu_end,
+                    "memory_used_gb_start": round(memory_start.used / (1024**3), 2),
+                    "memory_used_gb_end": round(memory_end.used / (1024**3), 2),
+                    "token_count": preprocessed["token_count"],
+                    "predicted_category": categories[top_idx] if top_idx < len(categories) else categories[0],
+                    "relevance_score": relevance_score
+                }
+            )
+            log_ai_event(ai_logger, "inference", log_entry, "info")
             
             result = {
                 "input_text": preprocessed["original_text"],
@@ -312,6 +352,18 @@ class PipelineManager:
             return result
             
         except Exception as e:
+            inference_time = time.time() - start_time
+            inference_time_ms = inference_time * 1000
+            
+            # Log errore
+            log_entry = AIMetrics.log_inference(
+                model_name=self.model_name,
+                elapsed_ms=inference_time_ms,
+                success=False,
+                error=e
+            )
+            log_ai_event(ai_logger, "inference_error", log_entry, "error")
+            
             logger.error(f"Errore durante inferenza: {e}", exc_info=True)
             return {
                 "input_text": text,
