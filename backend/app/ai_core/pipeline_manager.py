@@ -3,7 +3,7 @@ Geko AI Core - Pipeline Manager
 Gestisce il flusso di elaborazione dati attraverso la pipeline AI
 """
 
-from .model_loader import load_model
+from .model_loader import ModelLoader, load_model
 
 
 def preprocess(input_text: str):
@@ -25,22 +25,27 @@ def preprocess(input_text: str):
     }
 
 
-def inference(model, processed_data):
+def inference(model_data, processed_data):
     """
     Esegue inferenza usando il modello
     
     Args:
-        model: Modello caricato
+        model_data: Dict con model, tokenizer, config (da ModelLoader)
         processed_data: Dati processati
         
     Returns:
         Risultati inferenza
     """
-    # Mock inference
+    model = model_data.get("model")
+    tokenizer = model_data.get("tokenizer")
+    model_name = model_data.get("model_name", "unknown")
+    
+    # Mock inference (da implementare con logica reale)
     return {
-        "model": model.get("model", "unknown"),
+        "model": model_name,
         "result": "inference_ok",
-        "confidence": 0.95
+        "confidence": 0.95,
+        "note": "Mock inference - implementare logica reale"
     }
 
 
@@ -77,10 +82,12 @@ def run_pipeline(input_text: str):
     processed = preprocess(input_text)
     
     # Step 2: Load model
-    model = load_model()
+    model_data = load_model()
+    model = model_data.get("model")
+    tokenizer = model_data.get("tokenizer")
     
     # Step 3: Inference
-    inference_result = inference(model, processed)
+    inference_result = inference(model_data, processed)
     
     # Step 4: Post-processing
     final_result = postprocess(inference_result)
