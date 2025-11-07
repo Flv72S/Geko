@@ -25,6 +25,7 @@ import psutil
 from .model_loader import ModelLoader
 from .ai_metrics import AIMetrics
 from .ai_logger import ai_logger, log_ai_event
+from .ai_validation import AICoreValidator, AIFallbackManager
 
 # Configurazione logging
 log_dir = Path(__file__).parent.parent.parent / "logs"
@@ -90,6 +91,9 @@ class PipelineManager:
         use_cache: bool = True,
         device: str = "cpu",
         max_length: int = 128,
+        validation_threshold: float = 0.6,
+        fallback_models: Optional[List[Union[str, Dict[str, Any]]]] = None,
+        max_validation_retries: int = 2,
         **kwargs
     ):
         """
@@ -106,34 +110,36 @@ class PipelineManager:
         self.use_cache = use_cache
         self.device = device
         self.max_length = max_length
+        self.validation_threshold = validation_threshold
+        self.max_validation_retries = max(0, max_validation_retries)
+        self.loader_kwargs = kwargs.copy()
         self.kwargs = kwargs
         
-        # Inizializza ModelLoader
+        self.validator = AICoreValidator(default_threshold=validation_threshold)
+        self.fallback_manager = AIFallbackManager(device=device)
+        self.fallback_models_config = fallback_models or []
+        self.fallback_manager.register_model(model_name, path=model_name, priority=1)
+        
+        for idx, fallback in enumerate(self.fallback_models_config, start=2):
+            name: Optional[str] = None
+            path: Optional[str] = None
+            priority = idx
+            if isinstance(fallback, str):
+                name = fallback
+                path = fallback
+            elif isinstance(fallback, dict):
+                name = fallback.get("name") or fallback.get("model_name") or fallback.get("path")
+                path = fallback.get("path") or fallback.get("model_name") or name
+                priority = fallback.get("priority", idx)
+            if not name or not path:
+                continue
+            self.fallback_manager.register_model(name, path=path, priority=priority)
+        
         logger.info(f"Inizializzazione PipelineManager con modello: {model_name}")
-        self.model_loader = ModelLoader(
-            model_name=model_name,
-            use_cache=use_cache,
-            device=device,
-            **kwargs
-        )
         
-        # Carica modello
+        # Carica modello principale
         logger.info("Caricamento modello...")
-        self.model_bundle = self.model_loader.load_model()
-        self.tokenizer = self.model_bundle.get("tokenizer")
-        self.model = self.model_bundle.get("model")
-        self.config = self.model_bundle.get("config")
-        
-        if self.model is None:
-            raise ValueError("Modello non caricato correttamente")
-        
-        # Sposta modello su device se necessario
-        if TORCH_AVAILABLE and device != "cpu" and hasattr(self.model, 'to'):
-            try:
-                self.model = self.model.to(device)
-                logger.info(f"Modello spostato su device: {device}")
-            except Exception as e:
-                logger.warning(f"Impossibile spostare modello su {device}: {e}")
+        self._load_model(model_name, display_name=model_name)
         
         logger.info("PipelineManager inizializzato correttamente")
     
@@ -337,6 +343,7 @@ class PipelineManager:
                 "relevance_score": round(relevance_score, 4),
                 "raw_scores": [round(float(p), 4) for p in probs_list[:len(categories)]],
                 "confidence": round(relevance_score, 4),
+                "model_used": self.model_name,
                 "metadata": {
                     "model_name": self.model_name,
                     "model_type": self.model_bundle.get("model_type", "unknown"),
@@ -408,6 +415,7 @@ class PipelineManager:
             "relevance_score": 0.95,
             "raw_scores": [0.2] * len(categories),
             "confidence": 0.95,
+            "model_used": self.model_name,
             "note": "Mock inference - modello non disponibile",
             "metadata": {
                 "model_name": self.model_name,
@@ -452,46 +460,186 @@ class PipelineManager:
     
     def infer(self, text: str, postprocess: bool = True) -> Dict[str, Any]:
         """
-        Metodo principale per eseguire inferenza completa.
-        
-        Args:
-            text: Testo da analizzare
-            postprocess: Se True, applica post-processing
-            
-        Returns:
-            Dict con risultati completi
+        Metodo principale per eseguire inferenza completa con validazione e fallback.
         """
         if not text or not text.strip():
             logger.warning("Input vuoto o null")
             return {
                 "input_text": text or "",
                 "error": "Input vuoto o null",
-                "status": "error"
+                "status": "error",
+                "validated": False,
+                "fallback_used": False
             }
         
-        # Esegui inferenza
-        result = self.infer_text(text)
+        attempts = 0
+        available_models = max(1, len(self.fallback_manager.registry))
+        max_attempts = max(1, min(available_models, self.max_validation_retries + 1))
+        fallback_used = False
+        result: Optional[Dict[str, Any]] = None
+        last_error: Optional[str] = None
         
-        # Post-processing se richiesto
-        if postprocess and "error" not in result:
+        while attempts < max_attempts:
+            attempts += 1
+            current_model = self.model_name
+            logger.debug(f"Infer attempt {attempts}/{max_attempts} con modello {current_model}")
+            result = self.infer_text(text)
+            
+            if not isinstance(result, dict):
+                result = {"status": "error", "error": "invalid_result", "input_text": text}
+            
+            if "error" in result:
+                last_error = str(result.get("error"))
+                fallback_response = self.fallback_manager.handle_failure({
+                    "model": current_model,
+                    "reason": "error",
+                    "error": last_error
+                })
+                if fallback_response.get("action") == "switch_model" and attempts < max_attempts:
+                    switched = self._switch_to_fallback(fallback_response)
+                    if switched:
+                        fallback_used = True
+                        continue
+                break
+            
+            metadata = result.get("metadata", {})
+            latency_seconds = metadata.get("inference_time_seconds")
+            latency_ms = round(latency_seconds * 1000, 2) if isinstance(latency_seconds, (int, float)) else None
+            validation = self.validator.validate_output(result, threshold=self.validation_threshold)
+            report = self.validator.generate_validation_report(
+                result,
+                {
+                    "model_name": self.model_name,
+                    "device": self.device,
+                    "latency_ms": latency_ms,
+                    "threshold": self.validation_threshold
+                }
+            )
+            
+            result["validation"] = validation
+            result["validation_report"] = report
+            result["validated"] = validation.get("valid", False)
+            result["issues"] = validation.get("issues", [])
+            result["confidence"] = validation.get("confidence", result.get("confidence"))
+            result["validation_threshold"] = self.validation_threshold
+            result["fallback_used"] = fallback_used
+            result["model_used"] = self.model_name
+            
+            if validation.get("valid"):
+                break
+            
+            fallback_response = self.fallback_manager.handle_failure({
+                "model": self.model_name,
+                "reason": "low_confidence",
+                "validation": validation
+            })
+            if fallback_response.get("action") == "switch_model" and attempts < max_attempts:
+                switched = self._switch_to_fallback(fallback_response)
+                if switched:
+                    fallback_used = True
+                    continue
+            if not validation.get("valid"):
+                result.setdefault("status", "validation_failed")
+                break
+        
+        if result is None:
+            return {
+                "input_text": text,
+                "error": last_error or "unknown_error",
+                "status": "error",
+                "validated": False,
+                "fallback_used": fallback_used
+            }
+        
+        if "error" in result:
+            result.setdefault("fallback_used", fallback_used)
+            result.setdefault("validated", False)
+            result.setdefault("model_used", self.model_name)
+            return result
+        
+        if postprocess:
             result = self.postprocess_text(result)
         
         return result
     
+    def _load_model(self, model_identifier: str, display_name: Optional[str] = None):
+        loader = ModelLoader(
+            model_name=model_identifier,
+            use_cache=self.use_cache,
+            device=self.device,
+            **self.loader_kwargs
+        )
+        bundle = loader.load_model()
+        self._apply_model_bundle(bundle, loader, display_name or model_identifier)
+
+    def _apply_model_bundle(self, bundle: Dict[str, Any], loader: ModelLoader, display_name: str):
+        self.model_loader = loader
+        self.model_bundle = bundle
+        self.tokenizer = bundle.get("tokenizer")
+        self.model = bundle.get("model")
+        self.config = bundle.get("config")
+        self.model_name = display_name
+        if self.model is None:
+            raise ValueError("Modello non caricato correttamente")
+        if TORCH_AVAILABLE and self.device != "cpu" and hasattr(self.model, 'to'):
+            try:
+                self.model = self.model.to(self.device)
+                logger.info(f"Modello spostato su device: {self.device}")
+            except Exception as e:
+                logger.warning(f"Impossibile spostare modello su {self.device}: {e}")
+        registry_entry = self.fallback_manager.registry.get(display_name)
+        if registry_entry is not None:
+            registry_entry["last_used"] = datetime.now().isoformat()
+
+    def _switch_to_fallback(self, response: Dict[str, Any]) -> bool:
+        target_path = response.get("target_path") or response.get("model_used")
+        model_name = response.get("model_used") or target_path
+        if not target_path:
+            return False
+        try:
+            load_info = self.fallback_manager.load_model(
+                target_path,
+                use_cache=self.use_cache,
+                **self.loader_kwargs
+            )
+            bundle = load_info["bundle"]
+            loader = load_info["loader"]
+            logger.info(f"Switching to fallback model {model_name} (identifier: {target_path})")
+            self._apply_model_bundle(bundle, loader, model_name)
+            return True
+        except Exception as exc:
+            logger.error(f"Errore durante caricamento fallback {model_name}: {exc}", exc_info=True)
+            self.fallback_manager.log_fallback({
+                "action": "fallback_failed",
+                "model_used": model_name,
+                "reason": str(exc),
+                "timestamp": datetime.now().isoformat()
+            }, level="error")
+            return False
+
     def get_pipeline_info(self) -> Dict[str, Any]:
         """
         Restituisce informazioni sulla pipeline configurata.
-        
-        Returns:
-            Dict con informazioni pipeline
         """
+        fallback_info = [
+            {
+                "name": name,
+                "path": data.get("path"),
+                "priority": data.get("priority"),
+                "last_used": data.get("last_used")
+            }
+            for name, data in self.fallback_manager.registry.items()
+        ] if self.fallback_manager else []
         return {
             "model_name": self.model_name,
             "device": self.device,
             "max_length": self.max_length,
             "model_loaded": self.model is not None,
             "tokenizer_available": self.tokenizer is not None,
-            "supported_pipelines": list(SUPPORTED_PIPELINES.keys())
+            "supported_pipelines": list(SUPPORTED_PIPELINES.keys()),
+            "validation_threshold": self.validation_threshold,
+            "max_validation_retries": self.max_validation_retries,
+            "fallback_models": fallback_info
         }
 
 

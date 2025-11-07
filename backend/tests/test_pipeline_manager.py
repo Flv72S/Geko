@@ -134,6 +134,69 @@ class TestPipelineManager:
                 pytest.skip("transformers non installato")
             raise
 
+    def test_pipeline_infer_with_validation_and_fallback(self, monkeypatch):
+        """Simula inferenza con fallback automatico"""
+
+        def fake_load_model(self, model_identifier, display_name=None):
+            self.model_loader = None
+            self.model_bundle = {"model_type": "mock"}
+            self.tokenizer = None
+            self.model = object()
+            self.config = {}
+            self.model_name = display_name or model_identifier
+            if self.fallback_manager and self.model_name in self.fallback_manager.registry:
+                self.fallback_manager.registry[self.model_name]["last_used"] = "mock"
+
+        def fake_switch_to_fallback(self, response):
+            target = response.get("model_used") or "mock-fallback"
+            if target not in self.fallback_manager.registry:
+                self.fallback_manager.register_model(target, path=target, priority=5)
+            self.fallback_manager.registry[target]["last_used"] = "mock"
+            self.model_name = target
+            return True
+
+        def fake_infer_text(self, text):
+            base = {
+                "input_text": text,
+                "normalized_text": text.lower(),
+                "tokens": text.lower().split(),
+                "token_count": max(1, len(text.split())),
+                "categories": ["general", "technical"],
+                "predicted_category": "general",
+                "raw_scores": [],
+                "relevance_score": 0.0,
+                "confidence": 0.0,
+                "metadata": {"inference_time_seconds": 0.05},
+                "model_used": self.model_name
+            }
+            if self.model_name == "distilbert-base-uncased":
+                base["raw_scores"] = [0.3, 0.2]
+                base["relevance_score"] = 0.3
+                base["confidence"] = 0.3
+            else:
+                base["raw_scores"] = [0.9, 0.1]
+                base["relevance_score"] = 0.9
+                base["confidence"] = 0.9
+            return base
+
+        monkeypatch.setattr(PipelineManager, "_load_model", fake_load_model, raising=False)
+        monkeypatch.setattr(PipelineManager, "_switch_to_fallback", fake_switch_to_fallback, raising=False)
+        monkeypatch.setattr(PipelineManager, "infer_text", fake_infer_text, raising=False)
+
+        pm = PipelineManager(
+            model_name="distilbert-base-uncased",
+            use_cache=False,
+            fallback_models=[{"name": "mock-fallback", "priority": 2}],
+            validation_threshold=0.6,
+            max_validation_retries=2
+        )
+
+        result = pm.infer("Test fallback validation")
+        assert result["validated"] is True
+        assert result["fallback_used"] is True
+        assert result["model_used"] == "mock-fallback"
+        assert result["issues"] == []
+
 
 def test_supported_pipelines():
     """Test che SUPPORTED_PIPELINES contenga i tipi attesi"""

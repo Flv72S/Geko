@@ -67,7 +67,8 @@ def analyze_text(data: AnalyzeRequest):
         if _pipeline_manager is None:
             _pipeline_manager = PipelineManager(
                 model_name="distilbert-base-uncased",
-                use_cache=True
+                use_cache=True,
+                fallback_models=[{"name": "bert-base-uncased", "priority": 2}]
             )
         
         result = _pipeline_manager.infer(data.text, postprocess=True)
@@ -143,4 +144,18 @@ async def get_ai_metrics():
             status_code=500,
             detail=f"Errore raccolta metriche: {str(e)}"
         )
+
+
+@router.get("/validation/test")
+def validation_system_test():
+    """Endpoint diagnostico per verificare sistema di validazione e fallback."""
+    global _pipeline_manager
+    if _pipeline_manager:
+        fallback_models = [item["name"] for item in _pipeline_manager.fallback_manager.list_models()]
+    else:
+        fallback_models = [item["name"] for item in ai_core.fallback_manager.list_models()]
+    return {
+        "status": "validation_system_active",
+        "fallback_models": fallback_models
+    }
 
