@@ -1,14 +1,28 @@
-from pydantic_settings import BaseSettings
+"""Configurazione centrale del backend Geko."""
+
+from functools import lru_cache
 from pathlib import Path
+from typing import Optional
+
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str
+    """Impostazioni applicative caricate da variabili d'ambiente."""
+
+    APP_NAME: str = "Geko Backend"
+    APP_PORT: int = 8000
+    ENV: str = "development"
+    DATABASE_URL: Optional[str] = None
 
     class Config:
-        env_file = str(Path(__file__).parent.parent.parent.parent / ".env")
-        extra = "ignore"  # Ignora variabili extra nel .env
+        env_file = str(Path(__file__).resolve().parents[3] / ".env")
+        extra = "ignore"
 
 
-settings = Settings()
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
 
+
+settings = get_settings()

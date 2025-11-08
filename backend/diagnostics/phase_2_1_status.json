@@ -1,0 +1,12 @@
+{
+  "phase": "2.1",
+  "status": "READY",
+  "timestamp": "2025-11-08T11:52:20.188546",
+  "health": {
+    "status": "ok",
+    "service": "geko-backend",
+    "timestamp": "2025-11-08 10:52:20"
+  },
+  "issues": [],
+  "summary": "FastAPI core and /health endpoint operational"
+}
