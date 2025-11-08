@@ -1,0 +1,166 @@
+{
+  "phase": "Phase 2",
+  "timestamp": "2025-11-08T11:33:22.193536",
+  "overall_status": "READY",
+  "issues": [],
+  "results": {
+    "structure": {
+      "missing": []
+    },
+    "packages": [
+      {
+        "package": "fastapi",
+        "status": "OK",
+        "version": "0.115.12",
+        "details": ""
+      },
+      {
+        "package": "uvicorn",
+        "status": "OK",
+        "version": "0.15.0",
+        "details": ""
+      },
+      {
+        "package": "sqlalchemy",
+        "status": "OK",
+        "version": "2.0.41",
+        "details": ""
+      },
+      {
+        "package": "alembic",
+        "status": "OK",
+        "version": "1.16.1",
+        "details": ""
+      },
+      {
+        "package": "psycopg2/asyncpg",
+        "status": "OK",
+        "version": "2.9.10",
+        "details": ""
+      },
+      {
+        "package": "python-jose",
+        "status": "OK",
+        "version": "3.5.0",
+        "details": ""
+      },
+      {
+        "package": "passlib",
+        "status": "OK",
+        "version": "1.7.4",
+        "details": ""
+      },
+      {
+        "package": "pydantic",
+        "status": "OK",
+        "version": "2.11.5",
+        "details": ""
+      },
+      {
+        "package": "python-dotenv",
+        "status": "OK",
+        "version": "1.1.0",
+        "details": ""
+      },
+      {
+        "package": "redis",
+        "status": "OK",
+        "version": "6.1.0",
+        "details": ""
+      },
+      {
+        "package": "requests",
+        "status": "OK",
+        "version": "2.32.3",
+        "details": ""
+      },
+      {
+        "package": "pytest",
+        "status": "OK",
+        "version": "7.4.3",
+        "details": ""
+      }
+    ],
+    "env": {
+      "missing_files": [],
+      "missing_keys": {
+        "env": [],
+        "env_example": []
+      },
+      "env": {
+        "GEKO_ENV": "development",
+        "GEKO_DB_URL": "sqlite:///./data/geko.db",
+        "GEKO_API_KEY": "changeme",
+        "GEKO_PORT": "8000",
+        "DB_URL": "postgresql+psycopg2://flavio:flavio@localhost:5432/geko_db",
+        "REDIS_URL": "redis://localhost:6379/0",
+        "SECRET_KEY": "change_me_in_dev",
+        "JWT_ALGORITHM": "HS256",
+        "APP_PORT": "8000",
+        "DATABASE_URL": "postgresql+psycopg2://flavio:flavio@localhost:5432/geko_db"
+      },
+      "env_example": {
+        "DB_URL": "postgresql+psycopg2://postgres:postgres@localhost:5432/geko_db",
+        "REDIS_URL": "redis://localhost:6379/0",
+        "SECRET_KEY": "change_me",
+        "JWT_ALGORITHM": "HS256",
+        "APP_PORT": "8000"
+      }
+    },
+    "database": {
+      "status": "OK",
+      "details": "Test database superato con psycopg2"
+    },
+    "docker": {
+      "compose_exists": true,
+      "services_defined": [
+        "geko_backend",
+        "geko_db",
+        "geko_redis"
+      ],
+      "running_containers": {
+        "geko_backend": "0.0.0.0:8000->8000/tcp",
+        "geko_redis": "0.0.0.0:6379->6379/tcp",
+        "geko_db": "0.0.0.0:5432->5432/tcp",
+        "eterna-home-loki-1": "0.0.0.0:3100->3100/tcp",
+        "jellyfin": "0.0.0.0:8096->8096/tcp, 0.0.0.0:8920->8920/tcp"
+      },
+      "missing_containers": [],
+      "ports_ok": {
+        "geko_backend": true,
+        "geko_db": true,
+        "geko_redis": true
+      }
+    },
+    "ports": [
+      {
+        "name": "Backend API",
+        "port": 8000,
+        "host": "127.0.0.1",
+        "status": "EXPECTED",
+        "details": "Gestita da geko_backend"
+      },
+      {
+        "name": "PostgreSQL",
+        "port": 5432,
+        "host": "127.0.0.1",
+        "status": "EXPECTED",
+        "details": "Gestita da geko_db"
+      },
+      {
+        "name": "Redis",
+        "port": 6379,
+        "host": "127.0.0.1",
+        "status": "EXPECTED",
+        "details": "Gestita da geko_redis"
+      }
+    ],
+    "repository": {
+      "git_dir": true,
+      "gitignore": true,
+      "license": true,
+      "branch": "master",
+      "last_commit": "fix: completed Phase 1 environment setup"
+    }
+  }
+}
